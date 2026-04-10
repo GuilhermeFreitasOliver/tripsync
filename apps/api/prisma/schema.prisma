@@ -20,5 +20,31 @@ model User {
   avatarUrl String?
   createdAt DateTime @default(now())
 
+  accounts  Account[]
+  sessions  Session[]
+
   @@map("users")
+}
+
+model Account {
+  id         String @id @default(cuid())
+  userId     String
+  provider   String   // "google" | "apple"
+  providerId String
+  
+  user       User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@unique([provider, providerId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  userId       String
+  refreshToken String   @unique
+  expiresAt    DateTime
+  
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@map("sessions")
 }

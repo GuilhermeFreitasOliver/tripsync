@@ -1,6 +1,9 @@
 import Fastify from 'fastify';
 import cors from '@fastify/cors';
 import helmet from '@fastify/helmet';
+import authPlugin from './plugins/auth';
+import authRoutes from './routes/auth';
+import userRoutes from './routes/user';
 
 const server = Fastify({
   logger: true
@@ -10,10 +13,19 @@ const server = Fastify({
 server.register(cors);
 server.register(helmet);
 
+// Register Auth and custom plugins
+server.register(authPlugin);
+
 // Health check route
 server.get('/health', async (request, reply) => {
   return { ok: true };
 });
+
+// Register API Routes
+server.register(async (api) => {
+  api.register(authRoutes, { prefix: '/auth' });
+  api.register(userRoutes);
+}, { prefix: '/api/v1' });
 
 const start = async () => {
   try {
