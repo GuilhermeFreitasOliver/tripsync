@@ -2,7 +2,9 @@ import fp from 'fastify-plugin';
 import fastifyJwt from '@fastify/jwt';
 import fastifyCookie from '@fastify/cookie';
 import fastifyOauth2 from '@fastify/oauth2';
-import { FastifyRequest, FastifyReply, FastifyInstance } from 'fastify';
+import type { FastifyRequest, FastifyReply, FastifyInstance } from 'fastify';
+import process from 'node:process';
+import type { OAuth2Namespace } from '@fastify/oauth2';
 
 export default fp(async (server: FastifyInstance) => {
   // 1. Setup JWT
@@ -48,7 +50,7 @@ export default fp(async (server: FastifyInstance) => {
 // Extensões de Tipos
 declare module 'fastify' {
   export interface FastifyInstance {
-    authenticate: any;
-    googleOAuth2: any;
+    authenticate: (request: FastifyRequest, reply: FastifyReply) => Promise<void>;
+    googleOAuth2: OAuth2Namespace;
   }
 }
