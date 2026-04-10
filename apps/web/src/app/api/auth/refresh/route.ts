@@ -12,26 +12,31 @@ export async function POST() {
     return NextResponse.json({ message: "Nao autenticado." }, { status: 401 });
   }
 
-  const upstream = await fetch(`${API_URL}/api/v1/auth/refresh`, {
-    method: "POST",
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify({ refreshToken }),
-  });
+  try {
+    const upstream = await fetch(`${API_URL}/api/v1/auth/refresh`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ refreshToken }),
+    });
 
-  if (!upstream.ok) {
-    cookieStore.delete("refresh_token");
-    return NextResponse.json({ message: "Sessao invalida." }, { status: 401 });
+    if (!upstream.ok) {
+      cookieStore.delete("refresh_token");
+      return NextResponse.json({ message: "Sessao invalida." }, { status: 401 });
+    }
+
+    const data = (await upstream.json()) as { accessToken: string; refreshToken: string };
+
+    cookieStore.set("refresh_token", data.refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      path: "/",
+      maxAge: THIRTY_DAYS,
+    });
+
+    return NextResponse.json({ accessToken: data.accessToken });
+  } catch (error) {
+    console.error("[Refresh Session Error]", error);
+    return NextResponse.json({ message: "Falha de comunicacao com a API." }, { status: 502 });
   }
-
-  const data = (await upstream.json()) as { accessToken: string; refreshToken: string };
-
-  cookieStore.set("refresh_token", data.refreshToken, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    path: "/",
-    maxAge: THIRTY_DAYS,
-  });
-
-  return NextResponse.json({ accessToken: data.accessToken });
 }

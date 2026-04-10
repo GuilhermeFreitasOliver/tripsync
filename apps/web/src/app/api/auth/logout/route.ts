@@ -8,11 +8,15 @@ export async function POST() {
   const refreshToken = cookieStore.get("refresh_token")?.value;
 
   if (refreshToken) {
-    await fetch(`${API_URL}/api/v1/auth/logout`, {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ refreshToken }),
-    });
+    try {
+      await fetch(`${API_URL}/api/v1/auth/logout`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ refreshToken }),
+      });
+    } catch (error) {
+      console.error("[Logout Session Error]", error);
+    }
   }
 
   cookieStore.delete("refresh_token");

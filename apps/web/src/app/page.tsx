@@ -10,12 +10,14 @@ export default function Home() {
   const router = useRouter();
   const { user, isAuthenticated, isLoading, refreshSession, logout } = useAuth();
 
+  const [hasAttemptedRefresh, setHasAttemptedRefresh] = useState(false);
+
   useEffect(() => {
-    // Try to recover the session on first load if we don't have it in memory yet
-    if (!isAuthenticated && !isLoading) {
+    if (!isAuthenticated && !isLoading && !hasAttemptedRefresh) {
+      setHasAttemptedRefresh(true);
       refreshSession().catch(() => {});
     }
-  }, [isAuthenticated, isLoading, refreshSession]);
+  }, [isAuthenticated, isLoading, refreshSession, hasAttemptedRefresh]);
 
   if (isLoading) {
     return (
