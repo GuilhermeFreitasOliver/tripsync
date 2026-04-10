@@ -1,6 +1,7 @@
 import Fastify from 'fastify';
 import cors from '@fastify/cors';
 import helmet from '@fastify/helmet';
+import process from 'node:process';
 import authPlugin from './plugins/auth';
 import authRoutes from './routes/auth';
 import userRoutes from './routes/user';
@@ -17,7 +18,7 @@ server.register(helmet);
 server.register(authPlugin);
 
 // Health check route
-server.get('/health', async (request, reply) => {
+server.get('/health', async (_request, _reply) => {
   return { ok: true };
 });
 
@@ -31,7 +32,7 @@ const start = async () => {
   try {
     const port = Number(process.env.PORT) || 3001;
     await server.listen({ port, host: '0.0.0.0' });
-    console.log(`Server listening on port ${port}`);
+    server.log.info(`Server listening on port ${port}`);
   } catch (err) {
     server.log.error(err);
     process.exit(1);

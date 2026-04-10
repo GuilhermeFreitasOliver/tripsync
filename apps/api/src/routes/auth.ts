@@ -1,13 +1,14 @@
-import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
+import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import bcrypt from 'bcryptjs';
 import { prisma } from '../lib/prisma';
 import crypto from 'node:crypto';
+import process from 'node:process';
 
 export default async function authRoutes(server: FastifyInstance) {
   
   // POST /register
   server.post('/register', async (request: FastifyRequest, reply: FastifyReply) => {
-    const { email, password, name } = request.body as any;
+    const { email, password, name } = request.body as { email?: string; password?: string; name?: string };
 
     if (!email || !password || !name) {
       return reply.status(400).send({ error: 'Email, password, and name are required' });
@@ -32,7 +33,7 @@ export default async function authRoutes(server: FastifyInstance) {
 
   // POST /login
   server.post('/login', async (request: FastifyRequest, reply: FastifyReply) => {
-    const { email, password } = request.body as any;
+    const { email, password } = request.body as { email?: string; password?: string };
 
     if (!email || !password) {
       return reply.status(400).send({ error: 'Email and password are required' });
@@ -147,7 +148,7 @@ export default async function authRoutes(server: FastifyInstance) {
     try {
       const { token } = await server.googleOAuth2.getAccessTokenFromAuthorizationCodeFlow(request);
       
-      // Fetch user info from Google
+      // eslint-disable-next-line no-undef
       const userInfoResponse = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
         headers: { Authorization: `Bearer ${token.access_token}` },
       });
