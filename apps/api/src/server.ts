@@ -1,42 +1,33 @@
-import Fastify from 'fastify';
-import cors from '@fastify/cors';
-import helmet from '@fastify/helmet';
-import process from 'node:process';
-import authPlugin from './plugins/auth';
-import authRoutes from './routes/auth';
-import userRoutes from './routes/user';
+import "dotenv/config";
+import process from "node:process";
+import Fastify from "fastify";
+import cors from "@fastify/cors";
+import helmet from "@fastify/helmet";
+import { authPlugin } from "./plugins/auth";
+import { authRoutes } from "./routes/auth";
+import { userRoutes } from "./routes/user";
 
-const server = Fastify({
-  logger: true
-});
+const server = Fastify({ logger: true });
 
-// Register plugins
-server.register(cors);
-server.register(helmet);
+void server.register(cors);
+void server.register(helmet);
+void server.register(authPlugin);
+void server.register(authRoutes, { prefix: "/api/v1/auth" });
+void server.register(userRoutes, { prefix: "/api/v1" });
 
-// Register Auth and custom plugins
-server.register(authPlugin);
-
-// Health check route
-server.get('/health', async (_request, _reply) => {
+server.get("/health", async () => {
   return { ok: true };
 });
-
-// Register API Routes
-server.register(async (api) => {
-  api.register(authRoutes, { prefix: '/auth' });
-  api.register(userRoutes);
-}, { prefix: '/api/v1' });
 
 const start = async () => {
   try {
     const port = Number(process.env.PORT) || 3001;
-    await server.listen({ port, host: '0.0.0.0' });
+    await server.listen({ port, host: "0.0.0.0" });
     server.log.info(`Server listening on port ${port}`);
-  } catch (err) {
-    server.log.error(err);
+  } catch (error) {
+    server.log.error(error);
     process.exit(1);
   }
 };
 
-start();
+void start();
