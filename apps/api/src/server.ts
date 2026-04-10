@@ -9,7 +9,10 @@ import { userRoutes } from "./routes/user";
 
 const server = Fastify({ logger: true });
 
-void server.register(cors);
+void server.register(cors, {
+  origin: true, // Permite qualquer origin exata (suporta credentials)
+  credentials: true, // Necessário para aceitar cookies HttpOnly
+});
 void server.register(helmet);
 void server.register(authPlugin);
 void server.register(authRoutes, { prefix: "/api/v1/auth" });
