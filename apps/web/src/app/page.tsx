@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -10,14 +10,14 @@ export default function Home() {
   const router = useRouter();
   const { user, isAuthenticated, isLoading, refreshSession, logout } = useAuth();
 
-  const [hasAttemptedRefresh, setHasAttemptedRefresh] = useState(false);
+  const hasAttemptedRefresh = useRef(false);
 
   useEffect(() => {
-    if (!isAuthenticated && !isLoading && !hasAttemptedRefresh) {
-      setHasAttemptedRefresh(true);
+    if (!isAuthenticated && !isLoading && !hasAttemptedRefresh.current) {
+      hasAttemptedRefresh.current = true;
       refreshSession().catch(() => {});
     }
-  }, [isAuthenticated, isLoading, refreshSession, hasAttemptedRefresh]);
+  }, [isAuthenticated, isLoading, refreshSession]);
 
   if (isLoading) {
     return (
@@ -37,7 +37,10 @@ export default function Home() {
             <>
               <div className="flex h-20 w-20 items-center justify-center rounded-full bg-primary/20 text-primary-foreground shadow-inner overflow-hidden">
                 {user.avatarUrl ? (
-                  <img src={user.avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
+                  <>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={user.avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
+                  </>
                 ) : (
                   <span className="text-3xl font-bold text-primary">
                     {user.name.charAt(0).toUpperCase()}
