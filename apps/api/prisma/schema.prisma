@@ -10,41 +10,43 @@ datasource db {
   provider = "postgresql"
 }
 
-// ── Users ─────────────────────────────────────────────────────────────
-
 model User {
-  id        String   @id @default(cuid())
+  id        String    @id @default(cuid())
   name      String
-  email     String   @unique
-  password  String?  // null se login social
+  email     String    @unique
+  password  String?
   avatarUrl String?
-  createdAt DateTime @default(now())
-
   accounts  Account[]
   sessions  Session[]
+  createdAt DateTime  @default(now())
 
   @@map("users")
 }
 
 model Account {
-  id         String @id @default(cuid())
+  id         String   @id @default(cuid())
   userId     String
-  provider   String   // "google" | "apple"
+  provider   String
   providerId String
-  
-  user       User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
+
   @@unique([provider, providerId])
   @@map("accounts")
 }
 
 model Session {
-  id           String   @id @default(cuid())
-  userId       String
-  refreshToken String   @unique
-  expiresAt    DateTime
-  
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+  id               String    @id @default(cuid())
+  userId           String
+  refreshTokenHash String
+  expiresAt        DateTime
+  revokedAt        DateTime?
+  userAgent        String?
+  ipAddress        String?
+  user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  @@index([userId])
   @@map("sessions")
 }

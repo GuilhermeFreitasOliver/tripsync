@@ -1,29 +1,24 @@
-import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
-import { prisma } from '../lib/prisma';
+import type { FastifyInstance } from "fastify";
+import { authService, HttpError } from "../services/auth.service";
 
-export default async function userRoutes(server: FastifyInstance) {
-  // GET /me
-  server.get('/me', {
-    preValidation: [server.authenticate]
-  }, async (request: FastifyRequest, reply: FastifyReply) => {
-    const jwtPayload = request.user as { sub: string; email: string };
+function toErrorReply(error: unknown) {
+  if (error instanceof HttpError) {
+    return { statusCode: error.statusCode, message: error.message };
+  }
 
-    const user = await prisma.user.findUnique({
-      where: { id: jwtPayload.sub },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        avatarUrl: true,
-        createdAt: true,
-        // Exclude password and relations
-      }
-    });
+  return { statusCode: 500, message: "Erro interno do servidor." };
+}
 
-    if (!user) {
-      return reply.status(404).send({ error: 'User not found' });
+async function userRoutes(app: FastifyInstance) {
+  app.get("/me", { preHandler: [app.authenticate] }, async (request, reply) => {
+    try {
+      const result = await authService.me(request.user.sub);
+      return reply.send(result);
+    } catch (error) {
+      const parsed = toErrorReply(error);
+      return reply.code(parsed.statusCode).send({ message: parsed.message });
     }
-
-    return reply.send({ user });
   });
 }
+
+export { userRoutes };

@@ -1,15 +1,20 @@
 import process from "node:process";
+import { Pool } from "pg";
+import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "../../generated/prisma/client";
 
 // Singleton: garante uma unica instancia do PrismaClient na aplicacao
-const accelerateUrl = process.env.PRISMA_ACCELERATE_URL ?? process.env.DATABASE_URL;
+const databaseUrl = process.env.DATABASE_URL;
 
-if (!accelerateUrl) {
-  throw new Error("PRISMA_ACCELERATE_URL ou DATABASE_URL deve estar definido.");
+if (!databaseUrl) {
+  throw new Error("DATABASE_URL deve estar definido.");
 }
 
+const pool = new Pool({ connectionString: databaseUrl });
+const adapter = new PrismaPg(pool);
+
 const prisma = new PrismaClient({
-  accelerateUrl,
+  adapter,
   log: process.env.NODE_ENV === "development" ? ["query", "warn", "error"] : ["error"],
 });
 
